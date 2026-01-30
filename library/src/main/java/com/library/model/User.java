@@ -1,20 +1,28 @@
 package com.library.model;
 
 public class User {
-    private final int id;
-    private final String username;
-    private final String fullName;
-    private final String roleName;
-
-    public User(int id, String username, String fullName, String roleName) {
-        this.id = id;
-        this.username = username;
-        this.fullName = fullName;
-        this.roleName = roleName;
-    }
+    private int id;
+    private String username;
+    private String passwordHash;
+    private String fullName;
+    private int roleId;
+    private String roleName;
 
     public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
     public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
     public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public int getRoleId() { return roleId; }
+    public void setRoleId(int roleId) { this.roleId = roleId; }
+
     public String getRoleName() { return roleName; }
+    public void setRoleName(String roleName) { this.roleName = roleName; }
 }

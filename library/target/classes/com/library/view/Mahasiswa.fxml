@@ -19,7 +19,7 @@
 
     <center>
         <TabPane>
-            <Tab text="Cari & Pinjam Buku" closable="false">
+            <Tab text="Cari &amp; Pinjam Buku" closable="false">
                 <VBox spacing="10" style="-fx-padding: 10;">
                     <HBox spacing="8">
                         <TextField fx:id="searchField" promptText="Cari judul / penulis..." />

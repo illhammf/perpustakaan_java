@@ -2,14 +2,19 @@ package com.library.controller;
 
 import java.util.Optional;
 
+import com.library.Session;
 import com.library.model.Book;
 import com.library.model.Loan;
 import com.library.service.LibraryService;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -18,6 +23,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 public class PustakawanController {
 
@@ -68,6 +74,21 @@ public class PustakawanController {
         loanTable.setItems(loanData);
 
         handleRefresh();
+    }
+
+    @FXML
+    public void handleLogout(ActionEvent event) {
+        try {
+            Session.clear();
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("/com/library/view/Login.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Alert a = new Alert(Alert.AlertType.ERROR, ex.getMessage());
+            a.setHeaderText("Logout gagal");
+            a.showAndWait();
+        }
     }
 
     @FXML
