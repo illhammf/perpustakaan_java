@@ -6,6 +6,7 @@ C:\perpustakaan_java\library\src\main\java\com\library\controller\MahasiswaContr
 C:\perpustakaan_java\library\src\main\java\com\library\controller\PustakawanController.java
 C:\perpustakaan_java\library\src\main\java\com\library\dao\BookDao.java
 C:\perpustakaan_java\library\src\main\java\com\library\dao\LoanDao.java
+C:\perpustakaan_java\library\src\main\java\com\library\dao\RoleDao.java
 C:\perpustakaan_java\library\src\main\java\com\library\dao\UserDao.java
 C:\perpustakaan_java\library\src\main\java\com\library\model\Book.java
 C:\perpustakaan_java\library\src\main\java\com\library\model\Loan.java

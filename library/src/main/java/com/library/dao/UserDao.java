@@ -12,16 +12,15 @@ import com.library.model.User;
 
 public class UserDao {
 
-    // LOGIN (dipakai AuthService)
     public User findByUsernameAndPassword(String username, String password) throws Exception {
-        String sql = """
-            SELECT u.id, u.username, u.password_hash, u.full_name, u.role_id, r.name AS role_name
-            FROM users u
-            JOIN roles r ON r.id = u.role_id
-            WHERE u.username = ? AND u.password_hash = ?
-        """;
-        try (Connection conn = Db.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql =
+            "SELECT u.id, u.username, u.full_name, u.password_hash, r.name AS role " +
+            "FROM users u JOIN roles r ON r.id = u.role_id " +
+            "WHERE u.username = ? AND u.password_hash = ?";
+
+        try (Connection c = Db.getConnection();
+            PreparedStatement ps = c.prepareStatement(sql)) {
+
             ps.setString(1, username);
             ps.setString(2, password);
 
@@ -31,14 +30,14 @@ public class UserDao {
                 User u = new User();
                 u.setId(rs.getInt("id"));
                 u.setUsername(rs.getString("username"));
-                u.setPasswordHash(rs.getString("password_hash"));
                 u.setFullName(rs.getString("full_name"));
-                u.setRoleId(rs.getInt("role_id"));
-                u.setRoleName(rs.getString("role_name"));
+                u.setPasswordHash(rs.getString("password_hash"));
+                u.setRoleName(rs.getString("role")); // pastikan ada field roleName
                 return u;
             }
         }
     }
+
 
     // ADMIN: list users
     public List<User> findUsers(String keyword) throws Exception {

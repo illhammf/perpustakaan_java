@@ -1,22 +1,26 @@
 package com.library.service;
 
+import java.util.List;
+
 import com.library.dao.BookDao;
 import com.library.dao.LoanDao;
 import com.library.model.Book;
 import com.library.model.Loan;
 
-import java.util.List;
-
 public class LibraryService {
-    public static final int DUE_DAYS = 7;      // deadline 7 hari
-    public static final int FINE_PER_DAY = 1000; // denda per hari
 
     private final BookDao bookDao = new BookDao();
     private final LoanDao loanDao = new LoanDao();
 
-    // BOOKS
-    public List<Book> getBooks(String keyword) throws Exception {
-        return bookDao.findAll(keyword);
+    // ==== BOOKS ====
+
+    public List<Book> getAllBooks() throws Exception {
+        return bookDao.findAll();
+    }
+
+    public List<Book> searchBooksByTitle(String keyword) throws Exception {
+        if (keyword == null || keyword.isBlank()) return bookDao.findAll();
+        return bookDao.searchByTitle(keyword);
     }
 
     public void addBook(Book b) throws Exception {
@@ -25,30 +29,24 @@ public class LibraryService {
     }
 
     public void updateBook(Book b) throws Exception {
+        if (b == null || b.getId() <= 0) throw new IllegalArgumentException("ID buku tidak valid.");
         validateBook(b);
-        if (b.getId() <= 0) throw new IllegalArgumentException("Pilih buku yang mau di-edit.");
         bookDao.update(b);
     }
 
     public void deleteBook(int id) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("Pilih buku yang mau dihapus.");
-        bookDao.deleteById(id);
+        if (id <= 0) throw new IllegalArgumentException("ID buku tidak valid.");
+        bookDao.delete(id);
     }
 
     private void validateBook(Book b) {
+        if (b == null) throw new IllegalArgumentException("Data buku kosong.");
         if (b.getTitle() == null || b.getTitle().isBlank()) throw new IllegalArgumentException("Judul wajib diisi.");
         if (b.getAuthor() == null || b.getAuthor().isBlank()) throw new IllegalArgumentException("Penulis wajib diisi.");
         if (b.getStock() < 0) throw new IllegalArgumentException("Stok tidak boleh negatif.");
     }
 
-    // LOANS
-    public void borrowBook(int userId, int bookId) throws Exception {
-        loanDao.borrowBookTx(userId, bookId, DUE_DAYS);
-    }
-
-    public void returnBook(int loanId) throws Exception {
-        loanDao.returnBookTx(loanId, FINE_PER_DAY);
-    }
+    // ==== LOANS ====
 
     public List<Loan> getLoansByUser(int userId) throws Exception {
         return loanDao.findLoansByUser(userId);
@@ -56,5 +54,18 @@ public class LibraryService {
 
     public List<Loan> getActiveLoans() throws Exception {
         return loanDao.findActiveLoans();
+    }
+
+    public void borrowBook(int userId, int bookId, int daysDue) throws Exception {
+        if (userId <= 0) throw new IllegalArgumentException("User tidak valid.");
+        if (bookId <= 0) throw new IllegalArgumentException("Buku tidak valid.");
+        if (daysDue <= 0) throw new IllegalArgumentException("Durasi pinjam tidak valid.");
+        loanDao.borrowBookTx(userId, bookId, daysDue);
+    }
+
+    public void returnBook(int loanId, int finePerDay) throws Exception {
+        if (loanId <= 0) throw new IllegalArgumentException("Loan ID tidak valid.");
+        if (finePerDay < 0) throw new IllegalArgumentException("Fine per hari tidak valid.");
+        loanDao.returnBookTx(loanId, finePerDay);
     }
 }

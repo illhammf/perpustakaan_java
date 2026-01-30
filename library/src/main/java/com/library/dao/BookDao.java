@@ -1,98 +1,93 @@
 package com.library.dao;
 
-import com.library.config.Db;
-import com.library.model.Book;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.library.config.Db;
+import com.library.model.Book;
+
 public class BookDao {
 
-    public List<Book> findAll(String keyword) throws Exception {
-        String base = """
-            SELECT id, isbn, title, author, publisher, publish_year, category, stock
-            FROM books
-        """;
-        boolean hasKeyword = keyword != null && !keyword.isBlank();
-        String sql = hasKeyword ? base + " WHERE LOWER(title) LIKE ? OR LOWER(author) LIKE ? ORDER BY id DESC"
-                                : base + " ORDER BY id DESC";
+    public List<Book> findAll() throws Exception {
+        String sql = "SELECT id, title, author, stock, cover_path, description FROM books ORDER BY id ASC";
+        List<Book> list = new ArrayList<>();
+        try (Connection conn = Db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
-        List<Book> result = new ArrayList<>();
+            while (rs.next()) {
+                list.add(new Book(
+                        rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("author"),
+                        rs.getInt("stock"),
+                        rs.getString("cover_path"),
+                        rs.getString("description")
+                ));
+            }
+        }
+        return list;
+    }
+
+    public List<Book> searchByTitle(String keyword) throws Exception {
+        String sql = "SELECT id, title, author, stock, cover_path, description FROM books WHERE lower(title) LIKE ? ORDER BY id ASC";
+        List<Book> list = new ArrayList<>();
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            if (hasKeyword) {
-                String k = "%" + keyword.toLowerCase().trim() + "%";
-                ps.setString(1, k);
-                ps.setString(2, k);
-            }
-
+            ps.setString(1, "%" + keyword.toLowerCase() + "%");
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(new Book(
+                    list.add(new Book(
                             rs.getInt("id"),
-                            rs.getString("isbn"),
                             rs.getString("title"),
                             rs.getString("author"),
-                            rs.getString("publisher"),
-                            (Integer) rs.getObject("publish_year"),
-                            rs.getString("category"),
-                            rs.getInt("stock")
+                            rs.getInt("stock"),
+                            rs.getString("cover_path"),
+                            rs.getString("description")
                     ));
                 }
             }
         }
-        return result;
+        return list;
     }
 
     public void insert(Book b) throws Exception {
-        String sql = """
-            INSERT INTO books(isbn, title, author, publisher, publish_year, category, stock)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """;
+        String sql = "INSERT INTO books(title, author, stock, cover_path, description) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, blankToNull(b.getIsbn()));
-            ps.setString(2, b.getTitle());
-            ps.setString(3, b.getAuthor());
-            ps.setString(4, blankToNull(b.getPublisher()));
-            if (b.getPublishYear() == null) ps.setNull(5, Types.INTEGER); else ps.setInt(5, b.getPublishYear());
-            ps.setString(6, blankToNull(b.getCategory()));
-            ps.setInt(7, b.getStock());
+            ps.setString(1, b.getTitle());
+            ps.setString(2, b.getAuthor());
+            ps.setInt(3, b.getStock());
+            ps.setString(4, b.getCoverPath());
+            ps.setString(5, b.getDescription());
             ps.executeUpdate();
         }
     }
 
     public void update(Book b) throws Exception {
-        String sql = """
-            UPDATE books SET isbn=?, title=?, author=?, publisher=?, publish_year=?, category=?, stock=?
-            WHERE id=?
-        """;
+        String sql = "UPDATE books SET title=?, author=?, stock=?, cover_path=?, description=? WHERE id=?";
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, blankToNull(b.getIsbn()));
-            ps.setString(2, b.getTitle());
-            ps.setString(3, b.getAuthor());
-            ps.setString(4, blankToNull(b.getPublisher()));
-            if (b.getPublishYear() == null) ps.setNull(5, Types.INTEGER); else ps.setInt(5, b.getPublishYear());
-            ps.setString(6, blankToNull(b.getCategory()));
-            ps.setInt(7, b.getStock());
-            ps.setInt(8, b.getId());
+            ps.setString(1, b.getTitle());
+            ps.setString(2, b.getAuthor());
+            ps.setInt(3, b.getStock());
+            ps.setString(4, b.getCoverPath());
+            ps.setString(5, b.getDescription());
+            ps.setInt(6, b.getId());
             ps.executeUpdate();
         }
     }
 
-    public void deleteById(int id) throws Exception {
+    public void delete(int id) throws Exception {
         String sql = "DELETE FROM books WHERE id=?";
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
-    }
-
-    private String blankToNull(String s) {
-        return (s == null || s.isBlank()) ? null : s.trim();
     }
 }

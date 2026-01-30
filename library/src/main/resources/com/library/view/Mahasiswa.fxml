@@ -3,60 +3,90 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns="http://javafx.com/javafx/21.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.library.controller.MahasiswaController"
-            prefWidth="900" prefHeight="600">
+            stylesheets="@dashboard.css">
 
+    <!-- ===== TOPBAR ===== -->
     <top>
-        <HBox spacing="10" style="-fx-padding: 10;">
-            <Label text="Dashboard Mahasiswa" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="topbar">
+            <Label text="Dashboard Mahasiswa" styleClass="topbar-title"/>
+
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Refresh" onAction="#handleRefresh"/>
-            <Button text="Logout" onAction="#handleLogout"/>
+
+            <TextField fx:id="searchField" promptText="Cari buku..." styleClass="topbar-search"/>
+            <Button text="Cari" onAction="#handleSearchTop" styleClass="topbar-btn"/>
+            <Button text="Refresh" onAction="#handleRefresh" styleClass="topbar-btn"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="btn-danger"/>
         </HBox>
     </top>
 
+    <!-- ===== SIDEBAR ===== -->
+    <left>
+        <VBox spacing="10" styleClass="sidebar" prefWidth="240">
+            <Label text="Kelompok 1" styleClass="sidebar-title"/>
+            <Region styleClass="sidebar-line"/>
+
+            <Button text="Home" styleClass="sidebar-btn" onAction="#goHome"/>
+            <Button text="Cari &amp; Pinjam" styleClass="sidebar-btn" onAction="#goCari"/>
+            <Button text="Pinjaman Saya" styleClass="sidebar-btn" onAction="#goPinjaman"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+            <Region styleClass="sidebar-line"/>
+
+            <Label fx:id="loginInfoLabel" text="Login sebagai:" styleClass="sidebar-sub"/>
+        </VBox>
+    </left>
+
+    <!-- ===== CONTENT ===== -->
     <center>
-        <TabPane>
-            <Tab text="Cari &amp; Pinjam Buku" closable="false">
-                <VBox spacing="10" style="-fx-padding: 10;">
-                    <HBox spacing="8">
-                        <TextField fx:id="searchField" promptText="Cari judul / penulis..." />
-                        <Button text="Cari" onAction="#handleSearch"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="Pinjam (pilih buku)" onAction="#handleBorrowSelected"/>
-                    </HBox>
+        <StackPane styleClass="content-wrap">
+            <VBox spacing="12" styleClass="content">
 
-                    <TableView fx:id="bookTable" VBox.vgrow="ALWAYS">
-                        <columns>
-                            <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                            <TableColumn fx:id="colTitle" text="Judul" prefWidth="320"/>
-                            <TableColumn fx:id="colAuthor" text="Penulis" prefWidth="240"/>
-                            <TableColumn fx:id="colStock" text="Stok" prefWidth="80"/>
-                        </columns>
-                    </TableView>
+                <Label fx:id="pageTitleLabel"
+                       text="Rekomendasi / Koleksi Buku"
+                       styleClass="section-title"/>
 
-                    <Label fx:id="msgLabel" text="" style="-fx-text-fill: red;"/>
-                    <Label text="Catatan: Due date otomatis 7 hari dari tanggal pinjam."/>
-                </VBox>
-            </Tab>
+                <!-- VIEW: HOME / CARI -->
+                <ScrollPane fx:id="bookScroll"
+                            fitToWidth="true"
+                            fitToHeight="false"
+                            pannable="true"
+                            vbarPolicy="AS_NEEDED"
+                            hbarPolicy="NEVER"
+                            styleClass="book-scroll">
+                    <content>
+                        <TilePane fx:id="tileBooks"
+                                  prefColumns="3"
+                                  hgap="22" vgap="22"
+                                  prefTileWidth="260"
+                                  styleClass="book-tile"/>
+                    </content>
+                </ScrollPane>
 
-            <Tab text="Pinjaman Saya" closable="false">
-                <VBox spacing="10" style="-fx-padding: 10;">
+                <!-- VIEW: PINJAMAN -->
+                <VBox fx:id="loanPane" spacing="10" visible="false" managed="false">
+                    <Label text="Riwayat / Status Peminjaman" styleClass="section-title"/>
+
                     <TableView fx:id="loanTable" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="colLoanId" text="Loan ID" prefWidth="80"/>
-                            <TableColumn fx:id="colLoanBook" text="Buku" prefWidth="360"/>
-                            <TableColumn fx:id="colLoanDate" text="Pinjam" prefWidth="120"/>
-                            <TableColumn fx:id="colDueDate" text="Due" prefWidth="120"/>
+                            <TableColumn fx:id="colBookTitle" text="Buku" prefWidth="280"/>
+                            <TableColumn fx:id="colLoanDate" text="Pinjam" prefWidth="130"/>
+                            <TableColumn fx:id="colDueDate" text="Due" prefWidth="130"/>
                             <TableColumn fx:id="colStatus" text="Status" prefWidth="140"/>
                             <TableColumn fx:id="colFine" text="Fine" prefWidth="90"/>
                         </columns>
                     </TableView>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Refresh Pinjaman" onAction="#loadLoans" styleClass="topbar-btn"/>
+                    </HBox>
                 </VBox>
-            </Tab>
-        </TabPane>
+
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

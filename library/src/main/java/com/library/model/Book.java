@@ -2,41 +2,38 @@ package com.library.model;
 
 public class Book {
     private int id;
-    private String isbn;
     private String title;
     private String author;
-    private String publisher;
-    private Integer publishYear;
-    private String category;
     private int stock;
+    private String coverPath;
+    private String description;
 
     public Book() {}
 
-    public Book(int id, String isbn, String title, String author, String publisher, Integer publishYear, String category, int stock) {
+    public Book(int id, String title, String author, int stock, String coverPath, String description) {
         this.id = id;
-        this.isbn = isbn;
         this.title = title;
         this.author = author;
-        this.publisher = publisher;
-        this.publishYear = publishYear;
-        this.category = category;
         this.stock = stock;
+        this.coverPath = coverPath;
+        this.description = description;
     }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-    public String getIsbn() { return isbn; }
-    public void setIsbn(String isbn) { this.isbn = isbn; }
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
-    public String getPublisher() { return publisher; }
-    public void setPublisher(String publisher) { this.publisher = publisher; }
-    public Integer getPublishYear() { return publishYear; }
-    public void setPublishYear(Integer publishYear) { this.publishYear = publishYear; }
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+
+    public String getCoverPath() { return coverPath; }
+    public void setCoverPath(String coverPath) { this.coverPath = coverPath; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

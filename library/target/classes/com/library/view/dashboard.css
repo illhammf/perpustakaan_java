@@ -1,0 +1,175 @@
+/* ===== ROOT ===== */
+.root {
+    -fx-font-family: "Segoe UI";
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+    -fx-background-color: #0b3a55;
+    -fx-padding: 14 18 14 18;
+}
+
+.topbar-title {
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: 900;
+}
+
+.topbar-search {
+    -fx-pref-width: 280px;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: rgba(255,255,255,0.35);
+    -fx-background-color: white;
+}
+
+.topbar-btn {
+    -fx-background-radius: 12;
+    -fx-padding: 8 14 8 14;
+    -fx-font-weight: 800;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    -fx-background-color: #08344c;
+    -fx-padding: 16;
+}
+
+.sidebar-title {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+}
+
+.sidebar-line {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-background-color: rgba(255,255,255,0.25);
+}
+
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12 10 12;
+    -fx-background-radius: 10;
+}
+
+.sidebar-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.10);
+}
+
+.sidebar-sub {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-weight: 800;
+}
+
+/* ===== CONTENT ===== */
+.content-wrap {
+    -fx-background-color: #f3f6fb;
+    -fx-padding: 18;
+}
+
+.content {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 14, 0, 0, 4);
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0f172a;
+}
+
+/* ===== BOOK GRID ===== */
+.book-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 6 2 6 2;
+}
+
+.book-tile {
+    -fx-padding: 12 10 18 10;
+}
+
+/* ===== BOOK CARD ===== */
+.book-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-padding: 14;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(15, 23, 42, 0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 4);
+}
+
+.book-cover {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(15, 23, 42, 0.08);
+    -fx-border-width: 1;
+    -fx-padding: 8;
+}
+
+.no-cover {
+    -fx-text-fill: #64748b;
+    -fx-font-weight: 900;
+}
+
+.book-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0f172a;
+}
+
+.book-meta {
+    -fx-text-fill: #64748b;
+    -fx-font-weight: 800;
+}
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+    -fx-background-color: #f08a14;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 12;
+    -fx-padding: 8 14 8 14;
+}
+
+.btn-primary:hover {
+    -fx-opacity: 0.95;
+}
+
+.btn-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 12;
+    -fx-padding: 8 14 8 14;
+}
+
+/* sub title di topbar */
+.topbar-sub {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-weight: 700;
+}
+
+/* item sidebar (buat tombol aktif) */
+.sidebar-btn-active {
+    -fx-background-color: rgba(255,255,255,0.18);
+}
+
+/* label item sidebar (kalau masih dipakai) */
+.sidebar-item {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-weight: 800;
+}
+
+/* msg */
+.msg {
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: 800;
+}

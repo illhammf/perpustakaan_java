@@ -8,8 +8,9 @@ public class AuthService {
     private final UserDao userDao = new UserDao();
 
     public User login(String username, String password) throws Exception {
-        if (username == null || username.isBlank()) throw new IllegalArgumentException("Username wajib diisi.");
-        if (password == null || password.isBlank()) throw new IllegalArgumentException("Password wajib diisi.");
+        // Pastikan: di DB kamu password disimpan plain / hash?
+        // Dari screenshot kamu: password_hash berisi plain (admin123 dll),
+        // jadi sementara compare langsung.
         return userDao.findByUsernameAndPassword(username, password);
     }
 }

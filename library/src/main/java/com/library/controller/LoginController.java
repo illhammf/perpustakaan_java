@@ -3,17 +3,16 @@ package com.library.controller;
 import com.library.Session;
 import com.library.model.User;
 import com.library.service.AuthService;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.scene.Node;
 
 public class LoginController {
 
@@ -25,54 +24,106 @@ public class LoginController {
 
     @FXML
     public void handleLogin(ActionEvent event) {
-        errorLabel.setText("");
+
+        clearError();
+
+        String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
+        String password = passwordField.getText() == null ? "" : passwordField.getText();
+
+        /* ================= VALIDASI INPUT ================= */
+        if (username.isEmpty() && password.isEmpty()) {
+            setError("Username dan password wajib diisi.");
+            return;
+        }
+        if (username.isEmpty()) {
+            setError("Username tidak boleh kosong.");
+            return;
+        }
+        if (password.isEmpty()) {
+            setError("Password tidak boleh kosong.");
+            return;
+        }
 
         try {
-            String username = usernameField.getText();
-            String password = passwordField.getText();
-
-            User user = authService.login(
-                    username == null ? null : username.trim(),
-                    password
-            );
+            /* ================= AUTH ================= */
+            User user = authService.login(username, password);
 
             if (user == null) {
-                errorLabel.setText("Username atau password salah.");
+                setError("Username atau password salah.");
                 return;
             }
 
+            /* ================= SIMPAN SESSION ================= */
             Session.setCurrentUser(user);
 
-            String role = user.getRoleName() == null ? "" : user.getRoleName().trim().toUpperCase();
+            /* ================= ROUTING ROLE ================= */
+            String role = user.getRoleName();
+            String target;
 
-            String fxml;
-            switch (role) {
-                case "ADMIN" -> fxml = "/com/library/view/Admin.fxml";
-                case "PUSTAKAWAN" -> fxml = "/com/library/view/Pustakawan.fxml";
-                case "MAHASISWA" -> fxml = "/com/library/view/Mahasiswa.fxml";
-                default -> throw new IllegalStateException("Role tidak dikenali: " + role);
+            if (role == null) {
+                showAlert("Error", "Role user tidak ditemukan.", Alert.AlertType.ERROR);
+                return;
             }
 
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            switch (role.toUpperCase()) {
+                case "ADMIN" -> target = "/com/library/view/Admin.fxml";
+                case "PUSTAKAWAN" -> target = "/com/library/view/Pustakawan.fxml";
+                case "MAHASISWA" -> target = "/com/library/view/Mahasiswa.fxml";
+                default -> {
+                    showAlert("Error", "Role tidak dikenali: " + role, Alert.AlertType.ERROR);
+                    return;
+                }
+            }
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-            Parent root = loader.load();
-
+            Parent root = FXMLLoader.load(getClass().getResource(target));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.getScene().setRoot(root);
 
-        } catch (IllegalArgumentException ex) {
-            errorLabel.setText(ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Terjadi kesalahan saat login/pindah halaman");
-            String msg = ex.getClass().getSimpleName() + ": " + ex.getMessage();
-            if (ex.getCause() != null) {
-                msg += "\nCause: " + ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage();
-            }
-            alert.setContentText(msg);
-            alert.showAndWait();
+            showAlert(
+                    "Error Sistem",
+                    "Terjadi kesalahan saat login.\nSilakan coba lagi.",
+                    Alert.AlertType.ERROR
+            );
         }
+    }
+
+    /* ================= ACTION LAIN ================= */
+
+    @FXML
+    public void handleForgotPassword() {
+        showAlert(
+                "Lupa Password",
+                "Silakan hubungi Admin untuk reset password.",
+                Alert.AlertType.INFORMATION
+        );
+    }
+
+    @FXML
+    public void handleGoogleLogin() {
+        showAlert(
+                "Info",
+                "Login Google belum tersedia pada versi ini.",
+                Alert.AlertType.INFORMATION
+        );
+    }
+
+    /* ================= UTIL ================= */
+
+    private void setError(String msg) {
+        errorLabel.setText(msg);
+    }
+
+    private void clearError() {
+        errorLabel.setText("");
+    }
+
+    private void showAlert(String title, String msg, Alert.AlertType type) {
+        Alert a = new Alert(type);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
     }
 }

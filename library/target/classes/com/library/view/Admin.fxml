@@ -1,44 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns="http://javafx.com/javafx/21.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.library.controller.AdminController"
-            prefWidth="900" prefHeight="600">
+            stylesheets="@dashboard.css">
 
+    <!-- ===== TOPBAR ===== -->
     <top>
-        <HBox spacing="10" style="-fx-padding: 10;">
-            <Label text="Dashboard Admin" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Refresh" onAction="#handleRefresh"/>
-            <Button text="Logout" onAction="#handleLogout"/>
+        <HBox spacing="14" styleClass="topbar" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="14" right="18" bottom="14" left="18"/>
+            </padding>
+
+            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                <Label text="Dashboard Admin" styleClass="topbar-title"/>
+                <Label text="Kelola user dan role sistem" styleClass="topbar-sub"/>
+            </VBox>
+
+            <Button text="Refresh" onAction="#handleRefresh" styleClass="topbar-btn"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="btn-danger"/>
         </HBox>
     </top>
 
-    <center>
-        <VBox spacing="10" style="-fx-padding: 10;">
-            <HBox spacing="8">
-                <TextField fx:id="searchField" promptText="Cari username / nama..." />
-                <Button text="Cari" onAction="#handleSearch"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Tambah User" onAction="#handleAdd"/>
-                <Button text="Edit User" onAction="#handleEdit"/>
-                <Button text="Hapus User" onAction="#handleDelete"/>
-            </HBox>
+    <!-- ===== SIDEBAR ===== -->
+    <left>
+        <VBox spacing="10" styleClass="sidebar" prefWidth="240">
+            <padding>
+                <Insets top="16" right="14" bottom="16" left="14"/>
+            </padding>
 
-            <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="colUsername" text="Username" prefWidth="160"/>
-                    <TableColumn fx:id="colFullName" text="Nama Lengkap" prefWidth="260"/>
-                    <TableColumn fx:id="colRole" text="Role" prefWidth="160"/>
-                </columns>
-            </TableView>
+            <Label text="Menu" styleClass="sidebar-title"/>
+            <Region styleClass="sidebar-line"/>
 
-            <Label fx:id="msgLabel" text="" style="-fx-text-fill: red;"/>
+            <Label text="Manajemen User" styleClass="sidebar-item"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Region styleClass="sidebar-line"/>
+            <Label fx:id="loginInfoLabel" text="Login sebagai: Admin" styleClass="sidebar-sub"/>
         </VBox>
+    </left>
+
+    <!-- ===== CONTENT ===== -->
+    <center>
+        <StackPane styleClass="content-wrap">
+            <VBox styleClass="content" spacing="14">
+                <padding>
+                    <Insets top="16" right="16" bottom="16" left="16"/>
+                </padding>
+
+                <VBox spacing="12" styleClass="card">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                    </padding>
+
+                    <VBox spacing="6">
+                        <Label text="Manajemen User" styleClass="section-title"/>
+                        <Label text="Cari, tambah, edit, dan hapus user." styleClass="muted"/>
+                    </VBox>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="searchField"
+                                   promptText="Cari username / nama..."
+                                   HBox.hgrow="ALWAYS"
+                                   styleClass="topbar-search"/>
+
+                        <Button text="Cari" onAction="#handleSearch" styleClass="topbar-btn"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="Tambah User" onAction="#handleAdd" styleClass="btn-primary"/>
+                        <Button text="Edit User" onAction="#handleEdit" styleClass="topbar-btn"/>
+                        <Button text="Hapus User" onAction="#handleDelete" styleClass="topbar-btn"/>
+                    </HBox>
+
+                    <Label fx:id="msgLabel" text="" styleClass="msg"/>
+
+                    <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
+                            <TableColumn fx:id="colUsername" text="Username" prefWidth="180"/>
+                            <TableColumn fx:id="colFullName" text="Nama Lengkap" prefWidth="280"/>
+                            <TableColumn fx:id="colRole" text="Role" prefWidth="160"/>
+                        </columns>
+                    </TableView>
+
+                </VBox>
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>
