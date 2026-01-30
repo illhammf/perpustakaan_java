@@ -1,6 +1,6 @@
+com\library\App.class
+com\library\service\AuthService.class
 com\library\dao\UserDao.class
 com\library\config\Db.class
-com\library\App.class
 com\library\controller\LoginController.class
 com\library\model\User.class
-com\library\service\AuthService.class
