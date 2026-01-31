@@ -1,0 +1,32 @@
+/* Dialog specific styles */
+.dialog-pane {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+}
+
+.dialog-pane .content {
+    -fx-font-size: 13px;
+    -fx-text-fill: #0f172a;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
+.dialog-pane .button {
+    -fx-font-weight: 800;
+    -fx-background-radius: 8;
+}
+
+/* Different colors for types */
+.dialog-pane.alert-information .header-panel .label {
+    -fx-text-fill: #0b3b5a;
+}
+.dialog-pane.alert-error .header-panel .label {
+    -fx-text-fill: #b91c1c;
+}
+.dialog-pane.alert-confirmation .header-panel .label {
+    -fx-text-fill: #0b3b5a;
+}

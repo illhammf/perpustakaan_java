@@ -91,7 +91,7 @@ public class AdminController {
             }
         } catch (Exception ex) {
             setMsgErr("Gagal load user: " + ex.getMessage());
-            showError("Gagal load user", ex);
+            com.library.util.DialogUtil.showError("Gagal load user", ex);
         }
     }
 
@@ -116,7 +116,7 @@ public class AdminController {
             refreshUsers(null, false); // setelah sukses, reload tanpa menimpa pesan sukses
         } catch (Exception ex) {
             setMsgErr("Gagal tambah: " + ex.getMessage());
-            showError("Gagal tambah user", ex);
+            com.library.util.DialogUtil.showError("Gagal tambah user", ex);
         }
     }
 
@@ -140,7 +140,7 @@ public class AdminController {
             refreshUsers(null, false);
         } catch (Exception ex) {
             setMsgErr("Gagal edit: " + ex.getMessage());
-            showError("Gagal edit user", ex);
+            com.library.util.DialogUtil.showError("Gagal edit user", ex);
         }
     }
 
@@ -173,7 +173,7 @@ public class AdminController {
             refreshUsers(null, false);
         } catch (Exception ex) {
             setMsgErr("Gagal hapus: " + ex.getMessage());
-            showError("Gagal hapus user", ex);
+            com.library.util.DialogUtil.showError("Gagal hapus user", ex);
         }
     }
 
@@ -189,7 +189,7 @@ public class AdminController {
             stage.getScene().setRoot(root);
         } catch (Exception ex) {
             setMsgErr("Logout gagal: " + ex.getMessage());
-            showError("Logout gagal", ex);
+            com.library.util.DialogUtil.showError("Logout gagal", ex);
         }
     }
 
@@ -280,11 +280,7 @@ public class AdminController {
     }
 
     private void showError(String header, Exception ex) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle("Error");
-        a.setHeaderText(header);
-        a.setContentText(ex == null ? "Terjadi kesalahan." : ex.getMessage());
-        a.showAndWait();
+        com.library.util.DialogUtil.showError(header, ex);
     }
 
     private boolean isBlank(String s) {

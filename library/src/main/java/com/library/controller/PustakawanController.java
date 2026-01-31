@@ -132,7 +132,7 @@ public class PustakawanController {
             stage.getScene().setRoot(root);
         } catch (Exception ex) {
             ex.printStackTrace();
-            showError("Logout gagal", ex.getMessage());
+            com.library.util.DialogUtil.showError("Logout gagal", ex.getMessage());
         }
     }
 
@@ -263,6 +263,7 @@ public class PustakawanController {
             refreshBooks(null);
         } catch (Exception ex) {
             loanMsgLabel.setText("Gagal: " + ex.getMessage());
+            com.library.util.DialogUtil.showError("Gagal pengembalian", ex);
         }
     }
 

@@ -36,6 +36,8 @@
             <Region styleClass="sidebar-line"/>
 
             <Label fx:id="loginInfoLabel" text="Login sebagai:" styleClass="sidebar-sub"/>
+            <!-- Overdue notification (will be set by controller) -->
+            <Label fx:id="overdueLabel" text="" styleClass="sidebar-overdue" wrapText="true"/>
         </VBox>
     </left>
 
@@ -81,6 +83,7 @@
                     </TableView>
 
                     <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="btnReturn" text="Kembalikan" onAction="#handleReturnSelected" styleClass="topbar-btn"/>
                         <Button text="Refresh Pinjaman" onAction="#loadLoans" styleClass="topbar-btn"/>
                     </HBox>
                 </VBox>

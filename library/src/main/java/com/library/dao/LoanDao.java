@@ -45,6 +45,47 @@ public class LoanDao {
         return list;
     }
 
+    /**
+     * Mark all active loans (no return_date) whose due_date is before today as TERLAMBAT.
+     * This is a proactive update so controllers can show notifications.
+     */
+    public void markOverdueLoans() throws Exception {
+        String sql = """
+            UPDATE loans
+            SET status = 'TERLAMBAT'
+            WHERE return_date IS NULL
+              AND due_date < CURRENT_DATE
+              AND status <> 'TERLAMBAT'
+        """;
+
+        try (Connection conn = Db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Count how many active overdue loans a user currently has.
+     */
+    public int countOverdueByUser(int userId) throws Exception {
+        String sql = """
+            SELECT COUNT(*) AS cnt
+            FROM loans
+            WHERE user_id = ?
+              AND return_date IS NULL
+              AND due_date < CURRENT_DATE
+        """;
+
+        try (Connection conn = Db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("cnt");
+                return 0;
+            }
+        }
+    }
+
     // Untuk pustakawan: lihat semua yang belum kembali
     public List<Loan> findActiveLoans() throws Exception {
         String sql = """

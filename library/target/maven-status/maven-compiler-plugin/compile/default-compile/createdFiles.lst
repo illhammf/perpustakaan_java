@@ -2,6 +2,7 @@ com\library\App.class
 com\library\service\LibraryService.class
 com\library\dao\BookDao.class
 com\library\controller\MahasiswaController.class
+com\library\controller\LoginController$1.class
 com\library\model\Book.class
 com\library\model\Loan.class
 com\library\controller\AdminController.class

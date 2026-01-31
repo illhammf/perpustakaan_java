@@ -132,3 +132,6 @@
     -fx-font-weight: 800;
     -fx-text-fill: #0f172a;
 }
+
+/* Dialog styling */
+/* dialog styles moved to dialog.css */

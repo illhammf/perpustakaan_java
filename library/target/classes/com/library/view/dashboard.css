@@ -173,3 +173,36 @@
     -fx-text-fill: #ef4444;
     -fx-font-weight: 800;
 }
+
+/* Table selection styling: make selected row background fill rounded area and match blue theme */
+.table-view {
+    -fx-selection-bar: #2b82d9; /* primary blue */
+    -fx-selection-bar-non-focused: rgba(43,130,217,0.7);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 6; /* reduce gap so selection reaches edges */
+}
+
+.table-view .table-row-cell {
+    -fx-background-insets: 0 6 0 6; /* inset to align with table padding */
+}
+
+.table-view .table-row-cell:filled:selected, .table-view .table-row-cell:filled:selected:focused {
+    -fx-background-color: -fx-selection-bar; /* use selection bar color */
+    -fx-background-insets: 0; /* let background fill the row area */
+    -fx-background-radius: 8; /* slightly smaller radius so it fits inside table card */
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-background-color: transparent; /* avoid cell-level boxes */
+}
+
+.table-view .table-cell {
+    -fx-padding: 8 10; /* adjust cell padding for visual balance */
+    -fx-background-color: transparent;
+}
+
+/* Column header tweak to match the card look */
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+}

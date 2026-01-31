@@ -49,11 +49,25 @@ public class LibraryService {
     // ==== LOANS ====
 
     public List<Loan> getLoansByUser(int userId) throws Exception {
+        // Ensure overdue status is up-to-date before returning loans
+        loanDao.markOverdueLoans();
         return loanDao.findLoansByUser(userId);
     }
 
     public List<Loan> getActiveLoans() throws Exception {
         return loanDao.findActiveLoans();
+    }
+
+    /**
+     * Run overdue marking routine (mark loans whose due_date passed).
+     * Can be invoked periodically or before reads.
+     */
+    public void updateOverdueStatus() throws Exception {
+        loanDao.markOverdueLoans();
+    }
+
+    public int getOverdueCountForUser(int userId) throws Exception {
+        return loanDao.countOverdueByUser(userId);
     }
 
     public void borrowBook(int userId, int bookId, int daysDue) throws Exception {

@@ -120,10 +120,11 @@ public class LoginController {
     }
 
     private void showAlert(String title, String msg, Alert.AlertType type) {
-        Alert a = new Alert(type);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(msg);
-        a.showAndWait();
+        switch (type) {
+            case INFORMATION -> com.library.util.DialogUtil.showInfo(title, msg);
+            case ERROR -> com.library.util.DialogUtil.showError(title, msg);
+            case CONFIRMATION -> { boolean ok = com.library.util.DialogUtil.confirm(title, null, msg); if (!ok) {} }
+            default -> com.library.util.DialogUtil.showInfo(title, msg);
+        }
     }
 }
