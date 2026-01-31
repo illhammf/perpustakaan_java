@@ -104,6 +104,7 @@
 
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Button text="Refresh Data" onAction="#handleRefresh" styleClass="btn-ghost"/>
+                    <Button text="Edit Tanggal" onAction="#handleEditLoanDates" styleClass="btn-ghost"/>
                     <Button text="Kembalikan Terpilih" onAction="#handleReturnSelected" styleClass="btn-primary"/>
                 </HBox>
 

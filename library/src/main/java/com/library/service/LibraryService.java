@@ -1,5 +1,6 @@
 package com.library.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.library.dao.BookDao;
@@ -13,7 +14,6 @@ public class LibraryService {
     private final LoanDao loanDao = new LoanDao();
 
     // ==== BOOKS ====
-
     public List<Book> getAllBooks() throws Exception {
         return bookDao.findAll();
     }
@@ -47,21 +47,16 @@ public class LibraryService {
     }
 
     // ==== LOANS ====
-
     public List<Loan> getLoansByUser(int userId) throws Exception {
-        // Ensure overdue status is up-to-date before returning loans
         loanDao.markOverdueLoans();
         return loanDao.findLoansByUser(userId);
     }
 
     public List<Loan> getActiveLoans() throws Exception {
+        loanDao.markOverdueLoans();
         return loanDao.findActiveLoans();
     }
 
-    /**
-     * Run overdue marking routine (mark loans whose due_date passed).
-     * Can be invoked periodically or before reads.
-     */
     public void updateOverdueStatus() throws Exception {
         loanDao.markOverdueLoans();
     }
@@ -81,5 +76,10 @@ public class LibraryService {
         if (loanId <= 0) throw new IllegalArgumentException("Loan ID tidak valid.");
         if (finePerDay < 0) throw new IllegalArgumentException("Fine per hari tidak valid.");
         loanDao.returnBookTx(loanId, finePerDay);
+    }
+
+    // ✅ UPDATE TANGGAL PINJAM & JATUH TEMPO
+    public void updateLoanDates(int loanId, LocalDate loanDate, LocalDate dueDate) throws Exception {
+        loanDao.updateLoanDates(loanId, loanDate, dueDate);
     }
 }

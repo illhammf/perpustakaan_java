@@ -18,7 +18,7 @@
 
             <VBox spacing="2" HBox.hgrow="ALWAYS">
                 <Label text="Dashboard Admin" styleClass="topbar-title"/>
-                <Label text="Kelola user dan role sistem" styleClass="topbar-sub"/>
+                <Label text="Kelola user, role, dan peminjaman" styleClass="topbar-sub"/>
             </VBox>
 
             <Button text="Refresh" onAction="#handleRefresh" styleClass="topbar-btn"/>
@@ -37,6 +37,7 @@
             <Region styleClass="sidebar-line"/>
 
             <Label text="Manajemen User" styleClass="sidebar-item"/>
+            <Label text="Manajemen Peminjaman" styleClass="sidebar-item"/>
 
             <Region VBox.vgrow="ALWAYS"/>
 
@@ -53,6 +54,7 @@
                     <Insets top="16" right="16" bottom="16" left="16"/>
                 </padding>
 
+                <!-- ===================== USER CARD ===================== -->
                 <VBox spacing="12" styleClass="card">
                     <padding>
                         <Insets top="16" right="16" bottom="16" left="16"/>
@@ -67,7 +69,8 @@
                         <TextField fx:id="searchField"
                                    promptText="Cari username / nama..."
                                    HBox.hgrow="ALWAYS"
-                                   styleClass="topbar-search"/>
+                                   styleClass="topbar-search"
+                                   onAction="#handleSearch"/>
 
                         <Button text="Cari" onAction="#handleSearch" styleClass="topbar-btn"/>
 
@@ -88,8 +91,42 @@
                             <TableColumn fx:id="colRole" text="Role" prefWidth="160"/>
                         </columns>
                     </TableView>
-
                 </VBox>
+
+                <!-- ===================== LOAN CARD ===================== -->
+                <VBox spacing="12" styleClass="card">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                    </padding>
+
+                    <VBox spacing="6">
+                        <Label text="Manajemen Peminjaman" styleClass="section-title"/>
+                        <Label text="Admin dapat mengubah tanggal peminjaman dan jatuh tempo (update ke database)." styleClass="muted"/>
+                    </VBox>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="Refresh Loans" onAction="#handleRefreshLoans" styleClass="topbar-btn"/>
+                        <Button text="Edit Tanggal" onAction="#handleEditLoanDates" styleClass="btn-primary"/>
+                        <Button text="Kembalikan" onAction="#handleReturnSelected" styleClass="topbar-btn"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+                    </HBox>
+
+                    <Label fx:id="loanMsgLabel" text="" styleClass="msg"/>
+
+                    <TableView fx:id="loanTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colLoanId" text="Loan ID" prefWidth="90"/>
+                            <TableColumn fx:id="colLoanUser" text="User ID" prefWidth="90"/>
+                            <TableColumn fx:id="colLoanBook" text="Buku" prefWidth="260"/>
+                            <TableColumn fx:id="colLoanDate" text="Tanggal Pinjam" prefWidth="140"/>
+                            <TableColumn fx:id="colDueDate" text="Jatuh Tempo" prefWidth="140"/>
+                            <TableColumn fx:id="colStatus" text="Status" prefWidth="140"/>
+                            <TableColumn fx:id="colFine" text="Denda" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
             </VBox>
         </StackPane>
     </center>

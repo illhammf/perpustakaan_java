@@ -22,6 +22,7 @@ public class LoanDao {
             WHERE l.user_id = ?
             ORDER BY l.id DESC
         """;
+
         List<Loan> list = new ArrayList<>();
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -33,8 +34,8 @@ public class LoanDao {
                             rs.getInt("user_id"),
                             rs.getInt("book_id"),
                             rs.getString("book_title"),
-                            rs.getDate("loan_date").toLocalDate(),
-                            rs.getDate("due_date").toLocalDate(),
+                            rs.getDate("loan_date") == null ? null : rs.getDate("loan_date").toLocalDate(),
+                            rs.getDate("due_date") == null ? null : rs.getDate("due_date").toLocalDate(),
                             rs.getDate("return_date") == null ? null : rs.getDate("return_date").toLocalDate(),
                             rs.getString("status"),
                             rs.getInt("fine")
@@ -45,10 +46,7 @@ public class LoanDao {
         return list;
     }
 
-    /**
-     * Mark all active loans (no return_date) whose due_date is before today as TERLAMBAT.
-     * This is a proactive update so controllers can show notifications.
-     */
+    /** Mark semua pinjaman aktif yang lewat due_date jadi TERLAMBAT */
     public void markOverdueLoans() throws Exception {
         String sql = """
             UPDATE loans
@@ -57,16 +55,13 @@ public class LoanDao {
               AND due_date < CURRENT_DATE
               AND status <> 'TERLAMBAT'
         """;
-
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.executeUpdate();
         }
     }
 
-    /**
-     * Count how many active overdue loans a user currently has.
-     */
+    /** Count pinjaman terlambat user */
     public int countOverdueByUser(int userId) throws Exception {
         String sql = """
             SELECT COUNT(*) AS cnt
@@ -80,13 +75,12 @@ public class LoanDao {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("cnt");
-                return 0;
+                return rs.next() ? rs.getInt("cnt") : 0;
             }
         }
     }
 
-    // Untuk pustakawan: lihat semua yang belum kembali
+    /** Untuk pustakawan/admin: lihat semua yang belum kembali */
     public List<Loan> findActiveLoans() throws Exception {
         String sql = """
             SELECT l.id, l.user_id, l.book_id, b.title AS book_title,
@@ -96,6 +90,7 @@ public class LoanDao {
             WHERE l.return_date IS NULL
             ORDER BY l.due_date ASC
         """;
+
         List<Loan> list = new ArrayList<>();
         try (Connection conn = Db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -106,8 +101,8 @@ public class LoanDao {
                         rs.getInt("user_id"),
                         rs.getInt("book_id"),
                         rs.getString("book_title"),
-                        rs.getDate("loan_date").toLocalDate(),
-                        rs.getDate("due_date").toLocalDate(),
+                        rs.getDate("loan_date") == null ? null : rs.getDate("loan_date").toLocalDate(),
+                        rs.getDate("due_date") == null ? null : rs.getDate("due_date").toLocalDate(),
                         null,
                         rs.getString("status"),
                         rs.getInt("fine")
@@ -117,7 +112,7 @@ public class LoanDao {
         return list;
     }
 
-    // TRANSAKSI: Pinjam = cek stok, insert loan, kurangi stok
+    /** TRANSAKSI: Pinjam */
     public void borrowBookTx(int userId, int bookId, int daysDue) throws Exception {
         try (Connection conn = Db.getConnection()) {
             conn.setAutoCommit(false);
@@ -156,12 +151,11 @@ public class LoanDao {
         }
     }
 
-    // TRANSAKSI: Kembali = set return_date, hitung telat+fine, update status, tambah stok
+    /** TRANSAKSI: Kembali */
     public void returnBookTx(int loanId, int finePerDay) throws Exception {
         try (Connection conn = Db.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                // Ambil loan (lock)
                 LoanRow row = getLoanForUpdate(conn, loanId);
                 if (row == null) throw new IllegalStateException("Data peminjaman tidak ditemukan.");
                 if (row.returnDate != null) throw new IllegalStateException("Buku ini sudah dikembalikan.");
@@ -215,7 +209,9 @@ public class LoanDao {
         LocalDate dueDate;
         LocalDate returnDate;
         LoanRow(int bookId, LocalDate dueDate, LocalDate returnDate) {
-            this.bookId = bookId; this.dueDate = dueDate; this.returnDate = returnDate;
+            this.bookId = bookId;
+            this.dueDate = dueDate;
+            this.returnDate = returnDate;
         }
     }
 
@@ -233,6 +229,35 @@ public class LoanDao {
                         rs.getDate("due_date").toLocalDate(),
                         rs.getDate("return_date") == null ? null : rs.getDate("return_date").toLocalDate()
                 );
+            }
+        }
+    }
+
+    // ==========================
+    // ✅ UPDATE TANGGAL (KE DATABASE)
+    // ==========================
+    public void updateLoanDates(int loanId, LocalDate loanDate, LocalDate dueDate) throws Exception {
+        if (loanId <= 0) throw new IllegalArgumentException("Loan ID tidak valid.");
+        if (loanDate == null || dueDate == null) throw new IllegalArgumentException("Tanggal tidak boleh kosong.");
+        if (dueDate.isBefore(loanDate)) throw new IllegalArgumentException("Jatuh tempo tidak boleh sebelum tanggal pinjam.");
+
+        String sql = """
+            UPDATE loans
+            SET loan_date = ?, due_date = ?
+            WHERE id = ?
+              AND return_date IS NULL
+        """;
+
+        try (Connection conn = Db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, Date.valueOf(loanDate));
+            ps.setDate(2, Date.valueOf(dueDate));
+            ps.setInt(3, loanId);
+
+            int updated = ps.executeUpdate();
+            if (updated <= 0) {
+                throw new IllegalStateException("Gagal update: data tidak ditemukan atau sudah dikembalikan.");
             }
         }
     }

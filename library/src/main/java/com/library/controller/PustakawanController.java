@@ -1,11 +1,13 @@
 package com.library.controller;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import com.library.Session;
 import com.library.model.Book;
 import com.library.model.Loan;
 import com.library.service.LibraryService;
+import com.library.util.DialogUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -69,20 +71,24 @@ public class PustakawanController {
         // ===== Table Loan =====
         colLoanId.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getId()));
         colLoanBook.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(n(c.getValue().getBookTitle())));
-        colLoanDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getLoanDate())));
-        colDueDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getDueDate())));
+        colLoanDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().getLoanDate() == null ? "-" : c.getValue().getLoanDate().toString()
+        ));
+        colDueDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().getDueDate() == null ? "-" : c.getValue().getDueDate().toString()
+        ));
         colStatus.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(n(c.getValue().getStatus())));
         colFine.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getFine()));
         loanTable.setItems(loanData);
 
-        // default view: CRUD
-        goCrud(null);
+        if (searchBookField != null) searchBookField.setOnAction(e -> handleSearchBook());
 
-        handleRefresh();
+        goCrud(null);
+        handleRefresh(false);
     }
 
     // ==========================
-    // NAV VIEW (SIDEBAR)
+    // NAV VIEW
     // ==========================
     @FXML
     public void goCrud(ActionEvent e) {
@@ -99,17 +105,13 @@ public class PustakawanController {
     }
 
     private void showCrudView() {
-        crudPane.setVisible(true);
-        crudPane.setManaged(true);
-        returnPane.setVisible(false);
-        returnPane.setManaged(false);
+        if (crudPane != null) { crudPane.setVisible(true); crudPane.setManaged(true); }
+        if (returnPane != null) { returnPane.setVisible(false); returnPane.setManaged(false); }
     }
 
     private void showReturnView() {
-        crudPane.setVisible(false);
-        crudPane.setManaged(false);
-        returnPane.setVisible(true);
-        returnPane.setManaged(true);
+        if (crudPane != null) { crudPane.setVisible(false); crudPane.setManaged(false); }
+        if (returnPane != null) { returnPane.setVisible(true); returnPane.setManaged(true); }
     }
 
     private void setActiveMenu(Button active) {
@@ -121,7 +123,7 @@ public class PustakawanController {
     }
 
     // ==========================
-    // TOP ACTIONS
+    // LOGOUT
     // ==========================
     @FXML
     public void handleLogout(ActionEvent event) {
@@ -131,25 +133,32 @@ public class PustakawanController {
             Parent root = FXMLLoader.load(getClass().getResource("/com/library/view/Login.fxml"));
             stage.getScene().setRoot(root);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            com.library.util.DialogUtil.showError("Logout gagal", ex.getMessage());
+            DialogUtil.showError("Logout gagal", ex);
         }
     }
 
+    // ==========================
+    // REFRESH
+    // ==========================
     @FXML
     public void handleRefresh() {
-        if (bookMsgLabel != null) bookMsgLabel.setText("");
-        if (loanMsgLabel != null) loanMsgLabel.setText("");
+        handleRefresh(true);
+    }
 
-        // reset search biar jelas
+    private void handleRefresh(boolean showDialog) {
+        clearBookMsg();
+        clearLoanMsg();
+
         if (searchBookField != null) searchBookField.setText("");
 
         refreshBooks(null);
         refreshLoans();
+
+        if (showDialog) DialogUtil.showSuccess("Berhasil", "Data pustakawan berhasil diperbarui.");
     }
 
     // ==========================
-    // ✅ SEARCH BUKU (FIX)
+    // SEARCH BUKU
     // ==========================
     @FXML
     public void handleSearchBook() {
@@ -159,28 +168,32 @@ public class PustakawanController {
                     : searchBookField.getText().trim();
 
             if (keyword.isBlank()) {
-                bookMsgLabel.setText("Menampilkan semua buku.");
                 refreshBooks(null);
+                setBookMsgOk("Menampilkan semua buku.");
+                DialogUtil.showInfo("Kata kunci kosong", "Menampilkan semua buku karena kata kunci belum diisi.");
                 return;
             }
 
             refreshBooks(keyword);
-            bookMsgLabel.setText("Hasil pencarian untuk: " + keyword);
+
+            if (bookData.isEmpty()) {
+                setBookMsgErr("Tidak ada buku untuk kata kunci: " + keyword);
+                DialogUtil.showInfo("Tidak ditemukan", "Tidak ada buku yang cocok dengan: " + keyword);
+            } else {
+                setBookMsgOk("Ditemukan " + bookData.size() + " buku untuk: " + keyword);
+            }
 
         } catch (Exception ex) {
-            showError("Cari buku gagal", ex.getMessage());
+            DialogUtil.showError("Cari buku gagal", ex);
         }
     }
 
     private void refreshBooks(String keyword) {
         try {
-            if (keyword == null || keyword.isBlank()) {
-                bookData.setAll(service.getAllBooks());
-            } else {
-                bookData.setAll(service.searchBooksByTitle(keyword));
-            }
+            if (keyword == null || keyword.isBlank()) bookData.setAll(service.getAllBooks());
+            else bookData.setAll(service.searchBooksByTitle(keyword));
         } catch (Exception ex) {
-            showError("Gagal load data buku", ex.getMessage());
+            DialogUtil.showError("Gagal load data buku", ex);
         }
     }
 
@@ -188,12 +201,12 @@ public class PustakawanController {
         try {
             loanData.setAll(service.getActiveLoans());
         } catch (Exception ex) {
-            showError("Gagal load data peminjaman", ex.getMessage());
+            DialogUtil.showError("Gagal load data peminjaman", ex);
         }
     }
 
     // ==========================
-    // CRUD ACTIONS
+    // CRUD BUKU
     // ==========================
     @FXML
     public void handleAddBook() {
@@ -202,34 +215,46 @@ public class PustakawanController {
 
         try {
             service.addBook(b);
-            bookMsgLabel.setText("Berhasil tambah buku.");
+            setBookMsgOk("Berhasil tambah buku.");
+            DialogUtil.showSuccess("Sukses", "Buku berhasil ditambahkan.");
             refreshBooks(null);
         } catch (Exception ex) {
-            bookMsgLabel.setText("Gagal tambah: " + ex.getMessage());
+            setBookMsgErr("Gagal tambah: " + ex.getMessage());
+            DialogUtil.showError("Gagal tambah buku", ex);
         }
     }
 
     @FXML
     public void handleEditBook() {
         Book selected = bookTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { bookMsgLabel.setText("Pilih buku dulu."); return; }
+        if (selected == null) {
+            setBookMsgErr("Pilih buku dulu.");
+            DialogUtil.showInfo("Belum dipilih", "Pilih buku yang ingin diedit terlebih dahulu.");
+            return;
+        }
 
         Book edited = showBookDialog(selected);
         if (edited == null) return;
 
         try {
             service.updateBook(edited);
-            bookMsgLabel.setText("Berhasil edit buku.");
+            setBookMsgOk("Berhasil edit buku.");
+            DialogUtil.showSuccess("Sukses", "Data buku berhasil diperbarui.");
             refreshBooks(null);
         } catch (Exception ex) {
-            bookMsgLabel.setText("Gagal edit: " + ex.getMessage());
+            setBookMsgErr("Gagal edit: " + ex.getMessage());
+            DialogUtil.showError("Gagal edit buku", ex);
         }
     }
 
     @FXML
     public void handleDeleteBook() {
         Book selected = bookTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { bookMsgLabel.setText("Pilih buku dulu."); return; }
+        if (selected == null) {
+            setBookMsgErr("Pilih buku dulu.");
+            DialogUtil.showInfo("Belum dipilih", "Pilih buku yang ingin dihapus terlebih dahulu.");
+            return;
+        }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Konfirmasi");
@@ -241,33 +266,105 @@ public class PustakawanController {
 
         try {
             service.deleteBook(selected.getId());
-            bookMsgLabel.setText("Berhasil hapus buku.");
+            setBookMsgOk("Berhasil hapus buku.");
+            DialogUtil.showSuccess("Sukses", "Buku berhasil dihapus.");
             refreshBooks(null);
         } catch (Exception ex) {
-            bookMsgLabel.setText("Gagal hapus: " + ex.getMessage());
+            setBookMsgErr("Gagal hapus: " + ex.getMessage());
+            DialogUtil.showError("Gagal hapus buku", ex);
         }
     }
 
     // ==========================
-    // RETURN ACTION
+    // ✅ EDIT TANGGAL PINJAM & DUE DATE (UPDATE KE DB)
+    // ==========================
+    @FXML
+    public void handleEditLoanDates() {
+        Loan selected = loanTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            setLoanMsgErr("Pilih data peminjaman dulu.");
+            DialogUtil.showInfo("Belum dipilih", "Pilih peminjaman yang ingin diubah tanggalnya.");
+            return;
+        }
+
+        if (selected.getReturnDate() != null) {
+            setLoanMsgErr("Tidak bisa edit tanggal: pinjaman sudah dikembalikan.");
+            DialogUtil.showWarning("Tidak bisa", "Pinjaman yang sudah dikembalikan tidak dapat diedit.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Tanggal Peminjaman");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        DatePicker dpLoan = new DatePicker(selected.getLoanDate() != null ? selected.getLoanDate() : LocalDate.now());
+        DatePicker dpDue  = new DatePicker(selected.getDueDate() != null ? selected.getDueDate() : LocalDate.now().plusDays(7));
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(10);
+        gp.setPadding(new javafx.geometry.Insets(12));
+        gp.addRow(0, new Label("Tanggal Pinjam"), dpLoan);
+        gp.addRow(1, new Label("Jatuh Tempo"), dpDue);
+
+        dialog.getDialogPane().setContent(gp);
+
+        Optional<ButtonType> res = dialog.showAndWait();
+        if (res.isEmpty() || res.get() != ButtonType.OK) return;
+
+        LocalDate newLoan = dpLoan.getValue();
+        LocalDate newDue  = dpDue.getValue();
+
+        if (newLoan == null || newDue == null) {
+            DialogUtil.showWarning("Input kosong", "Tanggal pinjam dan jatuh tempo wajib diisi.");
+            return;
+        }
+        if (newDue.isBefore(newLoan)) {
+            DialogUtil.showWarning("Input salah", "Jatuh tempo tidak boleh sebelum tanggal pinjam.");
+            return;
+        }
+
+        try {
+            service.updateLoanDates(selected.getId(), newLoan, newDue);
+
+            // update object lokal biar table langsung refresh
+            selected.setLoanDate(newLoan);
+            selected.setDueDate(newDue);
+            loanTable.refresh();
+
+            setLoanMsgOk("Tanggal berhasil diperbarui (ID: " + selected.getId() + ")");
+            DialogUtil.showSuccess("Berhasil", "Tanggal pinjam & jatuh tempo berhasil diperbarui.");
+
+        } catch (Exception ex) {
+            setLoanMsgErr("Gagal edit tanggal: " + ex.getMessage());
+            DialogUtil.showError("Gagal edit tanggal", ex);
+        }
+    }
+
+    // ==========================
+    // RETURN
     // ==========================
     @FXML
     public void handleReturnSelected() {
         Loan selected = loanTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { loanMsgLabel.setText("Pilih data peminjaman dulu."); return; }
+        if (selected == null) {
+            setLoanMsgErr("Pilih data peminjaman dulu.");
+            DialogUtil.showInfo("Belum dipilih", "Pilih data peminjaman yang ingin dikembalikan.");
+            return;
+        }
 
         try {
             service.returnBook(selected.getId(), 1000);
-            loanMsgLabel.setText("Pengembalian sukses. Cek status & denda.");
+            setLoanMsgOk("Pengembalian sukses. Status & denda terupdate.");
+            DialogUtil.showSuccess("Berhasil", "Buku berhasil dikembalikan.");
             refreshLoans();
             refreshBooks(null);
         } catch (Exception ex) {
-            loanMsgLabel.setText("Gagal: " + ex.getMessage());
-            com.library.util.DialogUtil.showError("Gagal pengembalian", ex);
+            setLoanMsgErr("Gagal: " + ex.getMessage());
+            DialogUtil.showError("Gagal pengembalian", ex);
         }
     }
 
-    // ===== dialog tambah/edit =====
+    // ===== dialog tambah/edit buku =====
     private Book showBookDialog(Book existing) {
         Dialog<Book> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Tambah Buku" : "Edit Buku");
@@ -284,6 +381,7 @@ public class PustakawanController {
 
         GridPane gp = new GridPane();
         gp.setHgap(10); gp.setVgap(10);
+        gp.setPadding(new javafx.geometry.Insets(12));
 
         gp.addRow(0, new Label("Judul*"), title);
         gp.addRow(1, new Label("Penulis*"), author);
@@ -301,7 +399,7 @@ public class PustakawanController {
             String s = stock.getText();
 
             if (t == null || t.isBlank() || a == null || a.isBlank()) {
-                showError("Input salah", "Judul dan Penulis wajib diisi.");
+                DialogUtil.showWarning("Input kurang", "Judul dan Penulis wajib diisi.");
                 return null;
             }
 
@@ -309,13 +407,17 @@ public class PustakawanController {
             try {
                 st = Integer.parseInt(s.trim());
             } catch (Exception ex) {
-                showError("Input salah", "Stok harus angka.");
+                DialogUtil.showWarning("Input salah", "Stok harus berupa angka.");
+                return null;
+            }
+
+            if (st < 0) {
+                DialogUtil.showWarning("Input salah", "Stok tidak boleh negatif.");
                 return null;
             }
 
             Book b = new Book();
             if (existing != null) b.setId(existing.getId());
-
             b.setTitle(t.trim());
             b.setAuthor(a.trim());
             b.setStock(st);
@@ -328,13 +430,35 @@ public class PustakawanController {
         return res.orElse(null);
     }
 
-    private String n(String s) { return s == null ? "" : s; }
+    // ==========================
+    // UI HELPERS
+    // ==========================
+    private void clearBookMsg() { if (bookMsgLabel != null) bookMsgLabel.setText(""); }
+    private void clearLoanMsg() { if (loanMsgLabel != null) loanMsgLabel.setText(""); }
 
-    private void showError(String title, String msg) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle("Error");
-        a.setHeaderText(title);
-        a.setContentText(msg);
-        a.showAndWait();
+    private void setBookMsgOk(String msg) {
+        if (bookMsgLabel == null) return;
+        bookMsgLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-weight: 800;");
+        bookMsgLabel.setText(msg);
     }
+
+    private void setBookMsgErr(String msg) {
+        if (bookMsgLabel == null) return;
+        bookMsgLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: 800;");
+        bookMsgLabel.setText(msg);
+    }
+
+    private void setLoanMsgOk(String msg) {
+        if (loanMsgLabel == null) return;
+        loanMsgLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-weight: 800;");
+        loanMsgLabel.setText(msg);
+    }
+
+    private void setLoanMsgErr(String msg) {
+        if (loanMsgLabel == null) return;
+        loanMsgLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: 800;");
+        loanMsgLabel.setText(msg);
+    }
+
+    private String n(String s) { return s == null ? "" : s; }
 }

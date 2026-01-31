@@ -6,7 +6,9 @@ import com.library.dao.LoanDao;
 import com.library.model.Book;
 import com.library.model.Loan;
 import com.library.model.User;
+import com.library.util.DialogUtil;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,7 +17,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.beans.binding.Bindings;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -51,35 +52,31 @@ public class MahasiswaController {
     @FXML private TableColumn<Loan, String> colStatus;
     @FXML private TableColumn<Loan, Integer> colFine;
 
-    private final BookDao bookDao = new BookDao();
-    private final LoanDao loanDao = new LoanDao();
-
     @FXML private Button btnReturn;
 
+    private final BookDao bookDao = new BookDao();
+    private final LoanDao loanDao = new LoanDao();
     private List<Book> allBooks = new ArrayList<>();
 
     @FXML
     public void initialize() {
         try {
-            // tampilkan info login (kalau bisa ambil dari Session)
-            loginInfoLabel.setText(buildLoginInfoText());
-
+            if (loginInfoLabel != null) loginInfoLabel.setText(buildLoginInfoText());
             setupLoanTable();
 
-            // disable return button when no selection or selection not returnable
-            btnReturn.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-                Loan s = loanTable.getSelectionModel().getSelectedItem();
-                if (s == null) return true;
-                String st = s.getStatus();
-                if (st == null) return true;
-                st = st.toUpperCase();
-                return !(st.equals("DIPINJAM") || st.equals("TERLAMBAT"));
-            }, loanTable.getSelectionModel().selectedItemProperty()));
+            if (btnReturn != null) {
+                btnReturn.disableProperty().bind(Bindings.createBooleanBinding(() -> {
+                    Loan s = loanTable.getSelectionModel().getSelectedItem();
+                    if (s == null) return true;
+                    String st = s.getStatus();
+                    if (st == null) return true;
+                    st = st.toUpperCase();
+                    return !(st.equals("DIPINJAM") || st.equals("TERLAMBAT"));
+                }, loanTable.getSelectionModel().selectedItemProperty()));
+            }
 
-            // default: Home
             goHome(null);
 
-            // load data
             loadBooksToTiles();
             loadLoans();
 
@@ -89,21 +86,16 @@ public class MahasiswaController {
     }
 
     private String buildLoginInfoText() {
-        // default aman
         String base = "Login sebagai: (Mahasiswa)";
-
         try {
             User u = Session.getCurrentUser();
             if (u != null) {
-                String name = u.getFullName() == null ? "" : u.getFullName();
-                String role = u.getRoleName() == null ? "" : u.getRoleName();
+                String name = u.getFullName() == null ? "" : u.getFullName().trim();
+                String role = u.getRoleName() == null ? "" : u.getRoleName().trim();
                 if (!name.isBlank() && !role.isBlank()) return "Login sebagai: " + name + " (" + role + ")";
                 if (!name.isBlank()) return "Login sebagai: " + name;
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
+        } catch (Exception ignored) {}
         return base;
     }
 
@@ -126,13 +118,13 @@ public class MahasiswaController {
     // NAV (SIDEBAR)
     // ==========================
     @FXML public void goHome(ActionEvent e) {
-        pageTitleLabel.setText("Rekomendasi / Koleksi Buku");
+        if (pageTitleLabel != null) pageTitleLabel.setText("Rekomendasi / Koleksi Buku");
         showBooksView();
         renderTiles(allBooks);
     }
 
     @FXML public void goCari(ActionEvent e) {
-        pageTitleLabel.setText("Cari & Pinjam Buku");
+        if (pageTitleLabel != null) pageTitleLabel.setText("Cari & Pinjam Buku");
         showBooksView();
 
         String q = searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase();
@@ -141,25 +133,19 @@ public class MahasiswaController {
     }
 
     @FXML public void goPinjaman(ActionEvent e) {
-        pageTitleLabel.setText("Pinjaman Saya");
+        if (pageTitleLabel != null) pageTitleLabel.setText("Pinjaman Saya");
         showLoansView();
         loadLoans();
     }
 
     private void showBooksView() {
-        bookScroll.setVisible(true);
-        bookScroll.setManaged(true);
-
-        loanPane.setVisible(false);
-        loanPane.setManaged(false);
+        if (bookScroll != null) { bookScroll.setVisible(true); bookScroll.setManaged(true); }
+        if (loanPane != null) { loanPane.setVisible(false); loanPane.setManaged(false); }
     }
 
     private void showLoansView() {
-        bookScroll.setVisible(false);
-        bookScroll.setManaged(false);
-
-        loanPane.setVisible(true);
-        loanPane.setManaged(true);
+        if (bookScroll != null) { bookScroll.setVisible(false); bookScroll.setManaged(false); }
+        if (loanPane != null) { loanPane.setVisible(true); loanPane.setManaged(true); }
     }
 
     // ==========================
@@ -172,7 +158,7 @@ public class MahasiswaController {
             renderTiles(allBooks);
 
             if (allBooks.isEmpty()) {
-                showInfo("Info", "Belum ada buku di database.");
+                DialogUtil.showInfo("Koleksi kosong", "Belum ada buku di database. Silakan hubungi pustakawan untuk menambahkan data buku.");
             }
         } catch (Exception ex) {
             handleException("Gagal memuat data buku", ex, false);
@@ -180,6 +166,8 @@ public class MahasiswaController {
     }
 
     private void renderTiles(List<Book> books) {
+        if (tileBooks == null) return;
+
         tileBooks.getChildren().clear();
         if (books == null) return;
 
@@ -207,9 +195,8 @@ public class MahasiswaController {
         iv.setPreserveRatio(false);
 
         boolean loaded = tryLoadCoverById(iv, b.getId());
-        if (loaded) {
-            coverBox.getChildren().add(iv);
-        } else {
+        if (loaded) coverBox.getChildren().add(iv);
+        else {
             Label no = new Label("No Cover");
             no.getStyleClass().add("no-cover");
             coverBox.getChildren().add(no);
@@ -229,15 +216,13 @@ public class MahasiswaController {
 
         btnBorrow.setOnAction(e -> {
             if (b.getStock() <= 0) {
-                showInfo("Info", "Stok buku habis. Tidak bisa dipinjam.");
+                DialogUtil.showWarning("Stok habis", "Maaf, stok buku ini sedang habis sehingga tidak bisa dipinjam.");
                 return;
             }
             confirmBorrow(b);
         });
 
         card.getChildren().addAll(coverBox, title, meta, btnBorrow);
-
-        // klik card -> detail
         card.setOnMouseClicked(e -> showBookDetail(b));
 
         return card;
@@ -251,74 +236,65 @@ public class MahasiswaController {
                 if (is == null) continue;
                 iv.setImage(new Image(is));
                 return true;
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            } catch (Exception ignored) {}
         }
         return false;
     }
 
-private void showBookDetail(Book b) {
-    Dialog<Void> dialog = new Dialog<>();
-    dialog.setTitle("Detail Buku");
-    dialog.initModality(Modality.APPLICATION_MODAL);
+    private void showBookDetail(Book b) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Detail Buku");
+        dialog.initModality(Modality.APPLICATION_MODAL);
 
-    ButtonType closeBtn = new ButtonType("Tutup", ButtonBar.ButtonData.CANCEL_CLOSE);
-    dialog.getDialogPane().getButtonTypes().add(closeBtn);
+        ButtonType closeBtn = new ButtonType("Tutup", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(closeBtn);
 
-    VBox root = new VBox(12);
-    root.setStyle("-fx-padding:16; -fx-background-color:white;");
+        VBox root = new VBox(12);
+        root.setStyle("-fx-padding:16; -fx-background-color:white;");
 
-    Label t = new Label(n(b.getTitle()));
-    t.setStyle("-fx-font-size:18px; -fx-font-weight:900; -fx-text-fill:#0f172a;");
+        Label t = new Label(n(b.getTitle()));
+        t.setStyle("-fx-font-size:18px; -fx-font-weight:900; -fx-text-fill:#0f172a;");
 
-    Label a = new Label("Penulis: " + nDash(b.getAuthor()));
-    a.setStyle("-fx-text-fill:#334155; -fx-font-weight:700;");
+        Label a = new Label("Penulis: " + nDash(b.getAuthor()));
+        a.setStyle("-fx-text-fill:#334155; -fx-font-weight:700;");
 
-    Label s = new Label("Stok: " + b.getStock());
-    s.setStyle("-fx-text-fill:#64748b; -fx-font-weight:800;");
+        Label s = new Label("Stok: " + b.getStock());
+        s.setStyle("-fx-text-fill:#64748b; -fx-font-weight:800;");
 
-    // ✅ ambil deskripsi dari Book
-    String desc = getBookDescriptionSafe(b);
-    Label descLabel = new Label(desc.isBlank() ? "Deskripsi belum tersedia." : desc);
-    descLabel.setStyle("-fx-text-fill:#334155;");
-    descLabel.setWrapText(true);
+        String desc = getBookDescriptionSafe(b);
+        Label descLabel = new Label(desc.isBlank() ? "Deskripsi belum tersedia." : desc);
+        descLabel.setStyle("-fx-text-fill:#334155;");
+        descLabel.setWrapText(true);
 
-    // ✅ extra info lain (isbn/publisher/category/year) kalau ada
-    String extra = buildExtraInfoSafe(b);
-    Label extraLabel = new Label(extra.isBlank() ? "" : extra);
-    extraLabel.setStyle("-fx-text-fill:#64748b;");
-    extraLabel.setWrapText(true);
+        String extra = buildExtraInfoSafe(b);
+        Label extraLabel = new Label(extra.isBlank() ? "" : extra);
+        extraLabel.setStyle("-fx-text-fill:#64748b;");
+        extraLabel.setWrapText(true);
 
-    Button borrow = new Button("Pinjam Buku");
-    borrow.getStyleClass().add("btn-primary");
-    borrow.setDisable(b.getStock() <= 0);
-    borrow.setOnAction(e -> {
-        dialog.close();
-        confirmBorrow(b);
-    });
+        Button borrow = new Button("Pinjam Buku");
+        borrow.getStyleClass().add("btn-primary");
+        borrow.setDisable(b.getStock() <= 0);
+        borrow.setOnAction(e -> {
+            dialog.close();
+            confirmBorrow(b);
+        });
 
-    root.getChildren().addAll(t, a, s, new Separator(), new Label("Deskripsi:"), descLabel);
+        root.getChildren().addAll(t, a, s, new Separator(), new Label("Deskripsi:"), descLabel);
 
-    if (!extra.isBlank()) {
-        root.getChildren().addAll(new Separator(), new Label("Info tambahan:"), extraLabel);
+        if (!extra.isBlank()) {
+            root.getChildren().addAll(new Separator(), new Label("Info tambahan:"), extraLabel);
+        }
+        root.getChildren().add(borrow);
+
+        dialog.getDialogPane().setContent(root);
+        dialog.showAndWait();
     }
 
-    root.getChildren().add(borrow);
-
-    dialog.getDialogPane().setContent(root);
-    dialog.showAndWait();
-}
-
-    // ✅ prioritas: getDescription()
     private String getBookDescriptionSafe(Book b) {
         try {
             Object d = b.getClass().getMethod("getDescription").invoke(b);
             return d == null ? "" : d.toString().trim();
-        } catch (Exception ex) {
-            // reflection failures are non-fatal; print for debugging
-            ex.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return "";
     }
 
@@ -328,22 +304,22 @@ private void showBookDetail(Book b) {
         try {
             Object isbn = b.getClass().getMethod("getIsbn").invoke(b);
             if (isbn != null && !isbn.toString().isBlank()) sb.append("ISBN: ").append(isbn).append("\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ignored) {}
 
         try {
             Object pub = b.getClass().getMethod("getPublisher").invoke(b);
             if (pub != null && !pub.toString().isBlank()) sb.append("Publisher: ").append(pub).append("\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ignored) {}
 
         try {
             Object cat = b.getClass().getMethod("getCategory").invoke(b);
             if (cat != null && !cat.toString().isBlank()) sb.append("Kategori: ").append(cat).append("\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ignored) {}
 
         try {
             Object year = b.getClass().getMethod("getPublishYear").invoke(b);
             if (year != null) sb.append("Tahun: ").append(year).append("\n");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ignored) {}
 
         return sb.toString().trim();
     }
@@ -352,16 +328,15 @@ private void showBookDetail(Book b) {
         return (s == null || s.isBlank()) ? "-" : s;
     }
 
-
     private void confirmBorrow(Book b) {
         if (b == null) {
-            showError("Tidak bisa pinjam", "Data buku tidak valid (null).");
+            DialogUtil.showError("Data tidak valid", "Data buku tidak valid (null).");
             return;
         }
 
         Integer userId = getSessionUserId();
         if (userId == null) {
-            showError("Session tidak ditemukan", "Silakan login ulang.");
+            DialogUtil.showError("Session habis", "Session user tidak terbaca. Silakan login ulang.");
             goToLoginSafely();
             return;
         }
@@ -374,27 +349,21 @@ private void showBookDetail(Book b) {
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try {
-            // kemungkinan error:
-            // - stok habis (race condition)
-            // - buku sudah dipinjam
-            // - DB error
             loanDao.borrowBookTx(userId, b.getId(), 7);
 
-            showInfo("Berhasil", "Buku berhasil dipinjam.\nCek menu Pinjaman Saya.");
+            DialogUtil.showSuccess("Berhasil", "Buku berhasil dipinjam. Silakan cek menu Pinjaman Saya.");
             loadBooksToTiles();
             loadLoans();
             goPinjaman(null);
 
         } catch (Exception ex) {
-            // kasih pesan ramah + tetap simpan detail untuk debug
             String msg = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
-
             if (msg.contains("stock") || msg.contains("stok")) {
-                showError("Gagal meminjam", "Stok buku sudah habis.");
+                DialogUtil.showWarning("Stok habis", "Stok buku sudah habis saat proses peminjaman.");
             } else if (msg.contains("duplicate") || msg.contains("sudah") || msg.contains("already")) {
-                showError("Gagal meminjam", "Buku ini sudah kamu pinjam / masih aktif.");
+                DialogUtil.showWarning("Sudah dipinjam", "Buku ini sudah kamu pinjam / masih berstatus aktif.");
             } else {
-                handleException("Gagal meminjam buku", ex, false);
+                DialogUtil.showError("Gagal meminjam buku", ex);
             }
         }
     }
@@ -403,47 +372,50 @@ private void showBookDetail(Book b) {
     public void handleReturnSelected(ActionEvent e) {
         Loan selected = loanTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showInfo("Pilih pinjaman", "Pilih pinjaman yang ingin dikembalikan.");
+            DialogUtil.showInfo("Belum dipilih", "Pilih pinjaman yang ingin dikembalikan terlebih dahulu.");
             return;
         }
 
-        // only allow return if this loan belongs to current user
         Integer userId = getSessionUserId();
         if (userId == null) {
-            showError("Session tidak ditemukan", "Silakan login ulang.");
+            DialogUtil.showError("Session habis", "Silakan login ulang.");
             goToLoginSafely();
             return;
         }
-        if (selected.getUserId() != userId) {
-            showError("Akses ditolak", "Anda hanya dapat mengembalikan pinjaman Anda sendiri.");
-            return;
-        }
+
+        // pastikan milik user ini
+        try {
+            int loanUserId = selected.getUserId();
+            if (loanUserId != userId) {
+                DialogUtil.showError("Akses ditolak", "Anda hanya dapat mengembalikan pinjaman Anda sendiri.");
+                return;
+            }
+        } catch (Exception ignored) {}
 
         String status = selected.getStatus() == null ? "" : selected.getStatus().toUpperCase();
         if (!status.equals("DIPINJAM") && !status.equals("TERLAMBAT")) {
-            showInfo("Tidak dapat dikembalikan", "Pinjaman ini tidak dalam status yang dapat dikembalikan.");
+            DialogUtil.showWarning("Tidak bisa dikembalikan", "Pinjaman ini tidak dalam status yang bisa dikembalikan.");
             return;
         }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Konfirmasi Pengembalian");
         confirm.setHeaderText("Kembalikan buku: " + n(selected.getBookTitle()));
-        confirm.setContentText("Apakah Anda yakin ingin mengembalikan buku ini? Jika terlambat, akan dikenakan denda.");
+        confirm.setContentText("Jika terlambat, sistem akan menghitung denda otomatis.");
 
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try {
-            // fine per day: konfigurasi sederhana, 5000
             int finePerDay = 5000;
             loanDao.returnBookTx(selected.getId(), finePerDay);
 
-            com.library.util.DialogUtil.showInfo("Berhasil", "Buku berhasil dikembalikan.");
+            DialogUtil.showSuccess("Berhasil", "Buku berhasil dikembalikan.");
             loadBooksToTiles();
             loadLoans();
             goPinjaman(null);
 
         } catch (Exception ex) {
-            com.library.util.DialogUtil.showError("Gagal mengembalikan buku", ex);
+            DialogUtil.showError("Gagal mengembalikan buku", ex);
         }
     }
 
@@ -467,7 +439,7 @@ private void showBookDetail(Book b) {
 
             if (q.isBlank()) {
                 renderTiles(allBooks);
-                showInfo("Info", "Kata kunci kosong. Menampilkan semua buku.");
+                DialogUtil.showInfo("Kata kunci kosong", "Kamu belum mengetik kata kunci. Menampilkan semua buku.");
                 return;
             }
 
@@ -475,13 +447,15 @@ private void showBookDetail(Book b) {
             renderTiles(filtered);
 
             if (filtered.isEmpty()) {
-                showInfo("Info", "Buku tidak ditemukan untuk kata kunci: " + q);
+                DialogUtil.showInfo("Tidak ditemukan", "Buku tidak ditemukan untuk kata kunci: " + q);
+            } else {
+                DialogUtil.showSuccess("Hasil pencarian", "Ditemukan " + filtered.size() + " buku untuk kata kunci: " + q);
             }
 
             goCari(null);
 
         } catch (Exception ex) {
-            handleException("Gagal melakukan pencarian", ex, false);
+            DialogUtil.showError("Pencarian gagal", ex);
         }
     }
 
@@ -503,9 +477,9 @@ private void showBookDetail(Book b) {
             loadBooksToTiles();
             loadLoans();
             goHome(null);
-            showInfo("Info", "Data berhasil diperbarui.");
+            DialogUtil.showSuccess("Berhasil", "Data berhasil diperbarui.");
         } catch (Exception ex) {
-            handleException("Gagal refresh data", ex, false);
+            DialogUtil.showError("Refresh gagal", ex);
         }
     }
 
@@ -517,32 +491,25 @@ private void showBookDetail(Book b) {
         try {
             Integer userId = getSessionUserId();
             if (userId == null) {
-                // bukan error fatal, tapi jelasin
                 loanTable.setItems(FXCollections.observableArrayList());
-                showInfo("Session", "Session user tidak ditemukan. Silakan login ulang.");
+                if (overdueLabel != null) overdueLabel.setText("");
                 return;
             }
 
-            // update overdue status first so data returned reflects current overdue state
             loanDao.markOverdueLoans();
             List<Loan> loans = loanDao.findLoansByUser(userId);
             int overdue = loanDao.countOverdueByUser(userId);
-            if (overdue > 0) {
-                // show persistent inline notification in sidebar
-                try { overdueLabel.setText("Pinjaman terlambat: " + overdue + " — segera kembalikan."); } catch (Exception ignored) {}
-            } else {
-                try { overdueLabel.setText(""); } catch (Exception ignored) {}
+
+            if (overdueLabel != null) {
+                if (overdue > 0) overdueLabel.setText("⚠ Pinjaman terlambat: " + overdue + " — segera kembalikan.");
+                else overdueLabel.setText("");
             }
-            ObservableList<Loan> data = FXCollections.observableArrayList(loans);
+
+            ObservableList<Loan> data = FXCollections.observableArrayList(loans == null ? new ArrayList<>() : loans);
             loanTable.setItems(data);
 
-            if (loans == null || loans.isEmpty()) {
-                // info halus (tidak ganggu)
-                // showInfo("Info", "Belum ada pinjaman.");
-            }
-
         } catch (Exception ex) {
-            handleException("Gagal memuat data pinjaman", ex, false);
+            DialogUtil.showError("Gagal memuat data pinjaman", ex);
         }
     }
 
@@ -559,53 +526,22 @@ private void showBookDetail(Book b) {
             stage.setScene(new Scene(root));
 
         } catch (Exception ex) {
-            handleException("Logout gagal", ex, false);
+            DialogUtil.showError("Logout gagal", ex);
         }
     }
 
     private void goToLoginSafely() {
         try {
-            // cari stage dari salah satu node yang pasti ada
             Stage stage = (Stage) tileBooks.getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("/com/library/view/Login.fxml"));
             stage.setScene(new Scene(root));
-        } catch (Exception ignored) {
-            // kalau pun gagal, minimal gak crash
-        }
+        } catch (Exception ignored) {}
+    }
+
+    private void handleException(String title, Exception ex, boolean fatal) {
+        DialogUtil.showError(title, ex);
+        if (fatal) goToLoginSafely();
     }
 
     private String n(String s) { return s == null ? "" : s; }
-
-    /* ==========================
-       ERROR HANDLING UTAMA
-       ========================== */
-    private void handleException(String title, Exception ex, boolean fatal) {
-        ex.printStackTrace();
-
-        String msg = ex.getMessage();
-        if (msg == null || msg.isBlank()) msg = "Terjadi kesalahan. Silakan coba lagi.";
-
-        showError(title, msg);
-
-        if (fatal) {
-            // kalau fatal, paksa balik login biar aman
-            goToLoginSafely();
-        }
-    }
-
-    private void showError(String title, String msg) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle("Error");
-        a.setHeaderText(title);
-        a.setContentText(msg);
-        a.showAndWait();
-    }
-
-    private void showInfo(String title, String msg) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle("Info");
-        a.setHeaderText(title);
-        a.setContentText(msg);
-        a.showAndWait();
-    }
 }
